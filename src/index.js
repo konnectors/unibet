@@ -7,55 +7,86 @@ const {
   log
 } = require('cozy-konnector-libs')
 const request = requestFactory({
-  // the debug mode shows all the details about http request and responses. Very usefull for
-  // debugging but very verbose. That is why it is commented out by default
-  // debug: true,
-  // activates [cheerio](https://cheerio.js.org/) parsing on each page
-  cheerio: true,
-  // If cheerio is activated do not forget to deactivate json parsing (which is activated by
-  // default in cozy-konnector-libs
-  json: false,
-  // this allows request-promise to keep cookies between requests
+  debug: true,
+  cheerio: false,
+  json: true,
   jar: true
 })
 
-const baseUrl = 'http://books.toscrape.com'
+const baseUrl = 'https://www.unibet.fr/pari-sportif-poker'
+const loginUrl = 'https://www.unibet.fr/zones/loginbox/processLogin.json'
 
 module.exports = new BaseKonnector(start)
 
-// The start function is run by the BaseKonnector instance only when it got all the account
-// information (fields). When you run this connector yourself in "standalone" mode or "dev" mode,
-// the account information come from ./konnector-dev-config.json file
 async function start(fields) {
   log('info', 'Authenticating ...')
-  await authenticate(fields.login, fields.password)
+  await authenticate(fields.login, fields.password, fields.dateOfBirth)
   log('info', 'Successfully logged in')
-  // The BaseKonnector instance expects a Promise as return of the function
-  log('info', 'Fetching the list of documents')
-  const $ = await request(`${baseUrl}/index.html`)
-  // cheerio (https://cheerio.js.org/) uses the same api as jQuery (http://jquery.com/)
-  log('info', 'Parsing list of documents')
-  const documents = await parseDocuments($)
+  await getDeposits()
+  //  const $ = await request('https://www.unibet.fr/pari-sportif-poker')
+  // console.log($.html())
 
-  // here we use the saveBills function even if what we fetch are not bills, but this is the most
-  // common case in connectors
+  //const $2 = await request('https://www.unibet.fr/myaccount-betting-history.do')
+
+  return
+
+  log('info', 'Fetching the list of documents')
+  //  const $ = await request(`${baseUrl}/index.html`)
+  log('info', 'Parsing list of documents')
+  //  const documents = await parseDocuments($)
+
   log('info', 'Saving data to Cozy')
   await saveBills(documents, fields.folderPath, {
-    // this is a bank identifier which will be used to link bills to bank operations. These
-    // identifiers should be at least a word found in the title of a bank operation related to this
-    // bill. It is not case sensitive.
     identifiers: ['books']
   })
 }
 
-// this shows authentication using the [signin function](https://github.com/konnectors/libs/blob/master/packages/cozy-konnector-libs/docs/api.md#module_signin)
-// even if this in another domain here, but it works as an example
-function authenticate(username, password) {
+async function getDeposits() {
+  const res = await request({
+    url:
+      'https://www.unibet.fr/zones/myaccount/transactions-history-result.json',
+    method: 'POST',
+    form: {
+      datepickerFrom: '01/01/1997',
+      datepickerTo: '12/06/2018',
+      pageNumber: 1,
+      resultPerPage: 100,
+      statusFilter: 'deposit',
+      isFreeAccount: false
+    }
+  })
+  const items = res.transactionsHistoryItems
+  console.log(res)
+  console.log(res.transactionsHistoryItems)
+  for (let i in items) {
+    console.log(items[i].date)
+    console.log(items[i].amount)
+    console.log(i)
+  }
+  //  console.log(res)
+}
+
+async function authenticate(username, password, dateOfBirth) {
+  await request({
+    url: loginUrl,
+    method: 'POST',
+    form: {
+      username,
+      password,
+      dateOfBirth
+    }
+  })
+}
+
+function authenticate2(username, password, dateOfBirth) {
   return signin({
-    url: `http://quotes.toscrape.com/login`,
-    formSelector: 'form',
-    formData: { username, password },
-    // the validate function will check if
+    url: baseUrl,
+    formSelector: 'form[class="ui-form loginform"]',
+    formData: {
+      username,
+      password,
+      dateOfBirth
+    },
     validate: (statusCode, $) => {
       // The login in toscrape.com always works excepted when no password is set
       if ($(`a[href='/logout']`).length === 1) {
