@@ -1,3 +1,6 @@
+process.env.SENTRY_DSN = process.env.SENTRY_DSN ||
+'https://e7e51ef7c7ac4883a7c065e4682dedde:a55b128e48e24d78bcca49b8027c6bcf@sentry.cozycloud.cc/71'
+
 const {
   BaseKonnector,
   requestFactory,
@@ -8,7 +11,7 @@ const {
   htmlToPDF
 } = require('cozy-konnector-libs')
 const request = requestFactory({
-  debug: true,
+  debug: false,
   cheerio: false,
   json: true,
   jar: true
