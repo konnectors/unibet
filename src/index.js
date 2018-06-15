@@ -1,122 +1,121 @@
 const {
   BaseKonnector,
   requestFactory,
-  signin,
-  scrape,
   saveBills,
-  log
+  log,
+  errors,
+  createCozyPDFDocument,
+  htmlToPDF
 } = require('cozy-konnector-libs')
 const request = requestFactory({
-  // the debug mode shows all the details about http request and responses. Very usefull for
-  // debugging but very verbose. That is why it is commented out by default
-  // debug: true,
-  // activates [cheerio](https://cheerio.js.org/) parsing on each page
-  cheerio: true,
-  // If cheerio is activated do not forget to deactivate json parsing (which is activated by
-  // default in cozy-konnector-libs
-  json: false,
-  // this allows request-promise to keep cookies between requests
+  debug: true,
+  cheerio: false,
+  json: true,
   jar: true
 })
+const moment = require('moment')
+const cheerio = require('cheerio')
 
-const baseUrl = 'http://books.toscrape.com'
+const baseUrl = 'https://www.unibet.fr'
+const loginUrl = baseUrl + '/zones/loginbox/processLogin.json'
+const transUrl = baseUrl + '/zones/myaccount/transactions-history-result.json'
 
 module.exports = new BaseKonnector(start)
 
-// The start function is run by the BaseKonnector instance only when it got all the account
-// information (fields). When you run this connector yourself in "standalone" mode or "dev" mode,
-// the account information come from ./konnector-dev-config.json file
 async function start(fields) {
   log('info', 'Authenticating ...')
-  await authenticate(fields.login, fields.password)
+  await authenticate(fields.login, fields.password, fields.dateOfBirth)
   log('info', 'Successfully logged in')
-  // The BaseKonnector instance expects a Promise as return of the function
-  log('info', 'Fetching the list of documents')
-  const $ = await request(`${baseUrl}/index.html`)
-  // cheerio (https://cheerio.js.org/) uses the same api as jQuery (http://jquery.com/)
-  log('info', 'Parsing list of documents')
-  const documents = await parseDocuments($)
-
-  // here we use the saveBills function even if what we fetch are not bills, but this is the most
-  // common case in connectors
-  log('info', 'Saving data to Cozy')
-  await saveBills(documents, fields.folderPath, {
-    // this is a bank identifier which will be used to link bills to bank operations. These
-    // identifiers should be at least a word found in the title of a bank operation related to this
-    // bill. It is not case sensitive.
-    identifiers: ['books']
+  log('info', 'Fetching the list of documents ...')
+  const entries = await parseDeposits()
+  log('info', 'Saving data to Cozy ...')
+  await saveBills(entries, fields.folderPath, {
+    identifiers: ['unibet']
   })
 }
 
-// this shows authentication using the [signin function](https://github.com/konnectors/libs/blob/master/packages/cozy-konnector-libs/docs/api.md#module_signin)
-// even if this in another domain here, but it works as an example
-function authenticate(username, password) {
-  return signin({
-    url: `http://quotes.toscrape.com/login`,
-    formSelector: 'form',
-    formData: { username, password },
-    // the validate function will check if
-    validate: (statusCode, $) => {
-      // The login in toscrape.com always works excepted when no password is set
-      if ($(`a[href='/logout']`).length === 1) {
-        return true
-      } else {
-        // cozy-konnector-libs has its own logging function which format these logs with colors in
-        // standalone and dev mode and as JSON in production mode
-        log('error', $('.error').text())
-        return false
+async function getDeposits() {
+  // Get page after page by 100 (maximum)
+  let list = []
+  let page = 1
+  let again = true
+  while (again) {
+    const res = await request({
+      url: transUrl,
+      method: 'POST',
+      form: {
+        datepickerFrom: '01/01/1997',
+        datepickerTo: moment().format('DD/MM/YYYY'),
+        pageNumber: page,
+        resultPerPage: 100,
+        statusFilter: 'deposit',
+        isFreeAccount: false
       }
+    })
+    // Eliminate empty last page if needed
+    if (res.transactionsHistoryItems) {
+      list = list.concat(res.transactionsHistoryItems)
     }
-  })
+    if (!res.phHasNext || res.phHasNext === false) {
+      again = false
+    } else {
+      page++
+    }
+  }
+  return list
 }
 
-// The goal of this function is to parse a html page wrapped by a cheerio instance
-// and return an array of js objects which will be saved to the cozy by saveBills (https://github.com/konnectors/libs/blob/master/packages/cozy-konnector-libs/docs/api.md#savebills)
-function parseDocuments($) {
-  // you can find documentation about the scrape function here :
-  // https://github.com/konnectors/libs/blob/master/packages/cozy-konnector-libs/docs/api.md#scrape
-  const docs = scrape(
-    $,
-    {
-      title: {
-        sel: 'h3 a',
-        attr: 'title'
-      },
-      amount: {
-        sel: '.price_color',
-        parse: normalizePrice
-      },
-      fileurl: {
-        sel: 'img',
-        attr: 'src',
-        parse: src => `${baseUrl}/${src}`
-      },
-      filename: {
-        sel: 'h3 a',
-        attr: 'title',
-        parse: title => `${title}.jpg`
-      }
-    },
-    'article'
+async function parseDeposits() {
+  const items = await getDeposits()
+  let entries = []
+  for (let i in items) {
+    const date =  moment(items[i].date)
+    const html = '<body><table>'+
+      `<tr><td><b>Description :</b></td><td>${items[i].description}</td></tr>` +
+      `<tr><td><b>Montant :</b></td><td>${items[i].amount} €</td></tr>` +
+      `<tr><td><b>Date :</b></td><td>${date.format('DD-MM-YYYY à HH:mm')}</td></tr>` +
+      '</table></body>'
+    entries.push({
+      date: date.toDate(),
+      amount: items[i].amount,
+      currency: 'EUR',
+      filename: `${date.format('YYYY-MM-DD')}_${items[i].amount}€` +
+        `_${items[i].description.replace(' ','')}.pdf`,
+      filestream: generatePDF(html,
+                              'https://www.unibet.fr/myaccount-transactions-history.do')
+    })
+  }
+  return entries
+}
+
+function generatePDF(html, url) {
+  $ = cheerio.load(html)
+  let doc = createCozyPDFDocument(
+    'Généré automatiquement par le connecteur Unibet depuis la page',
+    url
   )
-  return docs.map(doc => ({
-    ...doc,
-    // the saveBills function needs a date field
-    // even if it is a little artificial here (these are not real bills)
-    date: new Date(),
-    currency: '€',
-    vendor: 'template',
-    metadata: {
-      // it can be interesting that we add the date of import. This is not mandatory but may be
-      // usefull for debugging or data migration
-      importDate: new Date(),
-      // document version, usefull for migration after change of document structure
-      version: 1
-    }
-  }))
+  htmlToPDF($, doc, $('body'), {})
+  doc.end()
+return doc
 }
 
-// convert a price string to a float
-function normalizePrice(price) {
-  return parseFloat(price.replace('£', '').trim())
+async function authenticate(username, password, dateOfBirth) {
+  const res = await request({
+    url: loginUrl,
+    method: 'POST',
+    form: {
+      username,
+      password,
+      dateOfBirth
+    },
+    resolveWithFullResponse: true
+  })
+  // Test vendor
+  if (res.statusCode != 200) {
+    throw new Error(errors.VENDOR_DOWN)
+  }
+  // Test login
+  if (res.body.errorMessage || !res.body.accountNumber) {
+    throw new Error(errors.LOGIN_FAILED)
+  }
 }
