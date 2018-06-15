@@ -27,7 +27,7 @@ module.exports = new BaseKonnector(start)
 
 async function start(fields) {
   log('info', 'Authenticating ...')
-  await authenticate(fields.login, fields.password, fields.dateOfBirth)
+  await authenticate(fields.login, fields.password, fields.dob)
   log('info', 'Successfully logged in')
   log('info', 'Fetching the list of documents ...')
   const entries = await parseDeposits()
