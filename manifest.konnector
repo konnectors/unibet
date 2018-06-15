@@ -1,20 +1,23 @@
 {
   "version": "1.0.0",
-  "name": "Connector template",
+  "name": "Unibet",
   "type": "konnector",
   "language": "node",
   "icon": "icon.png",
-  "slug": "template",
-  "source": "git://github.com/konnectors/cozy-konnector-template.git",
+  "slug": "unibet",
+  "source": "git://github.com/konnectors/unibet.git",
   "editor": "Cozy",
-  "vendor_link": "Link to the target website",
-  "categories": ["other"],
+  "vendor_link": "https://www.unibet.fr/",
+  "categories": ["online_services"],
   "fields": {
     "login": {
       "type": "text"
     },
     "password": {
       "type": "password"
+    },
+    "dob": {
+      "type": "date"
     },
     "advancedFields": {
       "folderPath": {
@@ -49,8 +52,8 @@
   "langs": ["fr", "en"],
   "locales": {
     "fr": {
-      "short_description": "Template de connecteur",
-      "long_description": "Ce template récupère une liste de livres sur un site de scraping",
+      "short_description": "Connecteur Unibet",
+      "long_description": "Ce connecteur récupère une liste de vos dépots sur le site Unibet.fr",
       "permissions": {
         "bank operations": {
           "description": "Utilisé pour relier les factures à des operations bancaires"
@@ -67,8 +70,8 @@
       }
     },
     "en": {
-      "short_description": "Connector template",
-      "long_description": "This template fetches a list of books from a scraping website",
+      "short_description": "Unibet connector",
+      "long_description": "This connector fetches your deposits from the unibet.fr website",
       "permissions": {
         "bank operations": {
           "description": "Required to link bank operations to bills"
