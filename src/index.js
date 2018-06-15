@@ -92,7 +92,7 @@ async function parseDeposits() {
 }
 
 function generatePDF(html, url) {
-  $ = cheerio.load(html)
+  const $ = cheerio.load(html)
   let doc = createCozyPDFDocument(
     'Généré automatiquement par le connecteur Unibet depuis la page',
     url
