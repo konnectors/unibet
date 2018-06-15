@@ -59,7 +59,7 @@ async function getDeposits() {
     if (res.transactionsHistoryItems) {
       list = list.concat(res.transactionsHistoryItems)
     }
-    if (!res.phHasNext || res.phHasNext === false) {
+    if (res.phHasNext === false) {
       again = false
     } else {
       page++
