@@ -26,8 +26,9 @@ const transUrl = baseUrl + '/zones/myaccount/transactions-history-result.json'
 module.exports = new BaseKonnector(start)
 
 async function start(fields) {
+  const dob = moment(fields.dob,'YYYY-MM-DD').format('DD/MM/YYYY')
   log('info', 'Authenticating ...')
-  await authenticate(fields.login, fields.password, fields.dob)
+  await authenticate(fields.login, fields.password, dob)
   log('info', 'Successfully logged in')
   log('info', 'Fetching the list of documents ...')
   const entries = await parseDeposits()
