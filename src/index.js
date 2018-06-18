@@ -34,7 +34,8 @@ async function start(fields) {
   const entries = await parseDeposits()
   log('info', 'Saving data to Cozy ...')
   await saveBills(entries, fields.folderPath, {
-    identifiers: ['unibet']
+    identifiers: ['unibet'],
+    contentType: 'application/pdf'
   })
 }
 
