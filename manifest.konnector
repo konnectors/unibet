@@ -69,6 +69,9 @@
         },
         "accounts": {
           "description": "Utilisé pour obtenir les données du compte"
+        },
+      "doctypes": {
+        "com.unibet.fr": "Paris Unibet"
         }
       }
     },
@@ -88,7 +91,10 @@
         "accounts": {
           "description": "Required to get the account's data"
         }
-      }
+      },
+      "doctypes": {
+        "com.unibet.fr": "Unibet Bets"
+        }
     }
   },
   "manifest_version": "2"
