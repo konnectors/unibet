@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "Unibet",
   "type": "konnector",
   "language": "node",
@@ -43,6 +43,9 @@
     "accounts": {
       "type": "io.cozy.accounts",
       "verbs": ["GET"]
+    },
+    "bets": {
+      "type": "com.unibet.bets"
     }
   },
   "developer": {
@@ -66,6 +69,9 @@
         },
         "accounts": {
           "description": "Utilisé pour obtenir les données du compte"
+        },
+      "doctypes": {
+        "com.unibet.fr": "Paris Unibet"
         }
       }
     },
@@ -85,7 +91,10 @@
         "accounts": {
           "description": "Required to get the account's data"
         }
-      }
+      },
+      "doctypes": {
+        "com.unibet.fr": "Unibet Bets"
+        }
     }
   },
   "manifest_version": "2"
