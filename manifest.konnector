@@ -97,5 +97,6 @@
         }
     }
   },
+  "banksTransactionRegExp": "\\bunibet\\b",
   "manifest_version": "2"
 }
