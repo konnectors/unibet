@@ -1,5 +1,6 @@
-process.env.SENTRY_DSN = process.env.SENTRY_DSN ||
-'https://e7e51ef7c7ac4883a7c065e4682dedde:a55b128e48e24d78bcca49b8027c6bcf@sentry.cozycloud.cc/71'
+process.env.SENTRY_DSN =
+  process.env.SENTRY_DSN ||
+  'https://e7e51ef7c7ac4883a7c065e4682dedde:a55b128e48e24d78bcca49b8027c6bcf@sentry.cozycloud.cc/71'
 
 const {
   BaseKonnector,
@@ -26,11 +27,10 @@ const loginUrl = baseUrl + '/zones/loginbox/processLogin.json'
 const transUrl = baseUrl + '/zones/myaccount/transactions-history-result.json'
 const betsUrl = baseUrl + '/zones/myaccount/betting-history-result.json'
 
-
 module.exports = new BaseKonnector(start)
 
 async function start(fields) {
-  const dob = moment(fields.dob,'YYYY-MM-DD').format('DD/MM/YYYY')
+  const dob = moment(fields.dob, 'YYYY-MM-DD').format('DD/MM/YYYY')
   log('info', 'Authenticating ...')
   await authenticate(fields.login, fields.password, dob)
   log('info', 'Successfully logged in')
@@ -45,7 +45,9 @@ async function start(fields) {
   // Horse bets and poker managed separatly.
   const bets = await parseBets()
   log('info', 'Saving bets')
-  const betsToSave = await hydrateAndFilter(bets, 'com.unibet.bets', { keys: ['idfobet'] })
+  const betsToSave = await hydrateAndFilter(bets, 'com.unibet.bets', {
+    keys: ['idfobet']
+  })
   await addData(betsToSave, 'com.unibet.bets')
 }
 
@@ -88,20 +90,27 @@ async function parseDeposits() {
   const items = await getTransactions('deposit')
   let entries = []
   for (let i in items) {
-    const date =  moment(items[i].date)
-    const html = '<body><table>'+
+    const date = moment(items[i].date)
+    const html =
+      '<body><table>' +
       `<tr><td><b>Description :</b></td><td>${items[i].description}</td></tr>` +
       `<tr><td><b>Montant :</b></td><td>${items[i].amount} €</td></tr>` +
-      `<tr><td><b>Date :</b></td><td>${date.format('DD-MM-YYYY à HH:mm')}</td></tr>` +
+      `<tr><td><b>Date :</b></td><td>${date.format(
+        'DD-MM-YYYY à HH:mm'
+      )}</td></tr>` +
       '</table></body>'
     entries.push({
+      vendor: 'Unibet',
       date: date.toDate(),
       amount: items[i].amount,
       currency: 'EUR',
-      filename: `${date.format('YYYY-MM-DD')}_${items[i].amount}€` +
-        `_${items[i].description.replace(' ','')}.pdf`,
-      filestream: generatePDF(html,
-                              'https://www.unibet.fr/myaccount-transactions-history.do')
+      filename:
+        `${date.format('YYYY-MM-DD')}_${items[i].amount}€` +
+        `_${items[i].description.replace(' ', '')}.pdf`,
+      filestream: generatePDF(
+        html,
+        'https://www.unibet.fr/myaccount-transactions-history.do'
+      )
     })
   }
   return entries
@@ -155,7 +164,7 @@ function generatePDF(html, url) {
   )
   htmlToPDF($, doc, $('body'), {})
   doc.end()
-return doc
+  return doc
 }
 
 async function authenticate(username, password, dateOfBirth) {
