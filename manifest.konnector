@@ -26,9 +26,7 @@
       }
     }
   },
-  "data_types": [
-    "bill"
-  ],
+  "data_types": ["bill"],
   "screenshots": [],
   "permissions": {
     "bank operations": {
@@ -70,8 +68,8 @@
         "accounts": {
           "description": "Utilisé pour obtenir les données du compte"
         },
-      "doctypes": {
-        "com.unibet.fr": "Paris Unibet"
+        "doctypes": {
+          "com.unibet.fr": "Paris Unibet"
         }
       }
     },
@@ -94,7 +92,7 @@
       },
       "doctypes": {
         "com.unibet.fr": "Unibet Bets"
-        }
+      }
     }
   },
   "banksTransactionRegExp": "\\bunibet\\b",
