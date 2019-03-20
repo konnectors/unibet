@@ -5,7 +5,7 @@
   "language": "node",
   "icon": "icon.png",
   "slug": "unibet",
-  "source": "git://github.com/konnectors/unibet.git",
+  "source": "git@github.com:konnectors/unibet.git",
   "editor": "Cozy",
   "vendor_link": "https://www.unibet.fr/",
   "categories": [
