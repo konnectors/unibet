@@ -39,7 +39,9 @@ async function start(fields) {
   log('info', 'Saving deposits')
   await saveBills(entries, fields.folderPath, {
     identifiers: ['unibet'],
-    contentType: 'application/pdf'
+    contentType: 'application/pdf',
+    sourceAccount: this.accountId,
+    sourceAccountIdentifier: fields.login
   })
   log('info', 'Fetching sport bets ...')
   // Horse bets and poker managed separatly.
