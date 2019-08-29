@@ -3,10 +3,11 @@ node_js:
 - '8'
 env:
   global:
-  - GH_USER_EMAIL="travis@example.org"
-  - GH_USER_NAME="cozy-bot"
   - DEPLOY_REPOSITORY="git@github.com:konnectors/unibet.git"
+  # REGISTRY_TOKEN(editor=cozy, app=unibet)
   - secure: I9Vi1tBLd8niBoVThpiwzJzHdGkSmlOZGNAzrifYlFkO6TUG6/jENJR1yEDVFEgqbxC7fHKpmkKAXMPEmIVi9u90GBKtI833jwL4HJfzgw6rBIMKyjhdYdJNC4Jly02AKH4siwtWGyRXZnjUAgmIfZBT9pmU4AN+KVQhs4je+NR8lGTYmn1dxSYu3izTDJq7LoVVKVa9aNBv9rxEL0aprrM4H5ev781a7niLXAdcZEGEP8c/qHmpjtfqFPaIjDaMwT+nmfMG3CJmK6CVZ8FdfIBWwRwCxOKJoD7LT/TBta8I7PF8YLg8+CZShQYg3GfnpfLz8XUkWC0/O2OQvPwbIJ/dTUpuID9FI+uSE6TZrs4CqGGyz6UmBmfB3WGwqHRsLF0WJHnyhTq6/49zdWt5NhkF/wRzWIw13MAoW6cyBAZhjmhbfu3pYsrwjdZ2Q+pMlEUm4P490tVoh5DJ2Fs4zG96pnaH3B2RBVnczJfxBDLuV62KTBER/Opdh7EbNWvkPpnFmzMSVGpszIdfS/wR3KhERHF2/YM9ei/EFbKZef8R7wyCQ0mhiXEVw6SlXl+Wb6Jn7JD5Iy+O/XmRgOpfuBbYAcvhYcw/bFfi23wJ/4nxkXWFXo/7YsU0/hJ/z4RAShz+TMhfOb/AKMHGKhQySkvYa+30iqvkQpVj2Yjz/50=
+  # MATTERMOST_HOOK_URL
+  - secure: k6ELBV0wtK/sHbt96Z+nc7ZlW82hMU2CK6mrTc2XzVARFytOxiJLtj+S5ZtIWvWEos46igJOy42Z92epZ5R+9Z9OfAN64PoU6u5eO5602K2MOEEq0jrExYQVIYJxdgryi5hfZu/Ppi+zKpA25L023L6i1nsjSXIT1XZTBo3fZIi57cu7tU41aSASwfJh3YQcv7LqLuweuemJz36jkSb5D4gAeejhpbOIQ492U4y6E3UlkEVA2hbCyrhH/oqCwk/Bo2L9zl+WClsNB4+Loq0ham1up7oWW2bEQDHwUShCxxHKgX5dewe/VF5CgzaKty+4x5j0ghv1AVTLCDR7YxlDhG8lkiWJxo6vNLvzaFHCjoAjmowUm94yzSERQuc+4riHLwb+05IoX8ro4iNkF//UBwZwsvDzw0ktfIFG51I0vTRl0OHHsDrlmJUZN8lM+vVmkjdyOtakn4hVTjRXfz4hdqmXhvpWIfIw9G2xjLbXDVF6XQo/m7JFmWiYnvdYRJ409MPO4bdYnMSQNS/0OECz8Ny8OSbtJxOHG/krwjGMBZRckL2QdEgo7HOspnuD8NlwJgj586Fu9ajOSPlCxyJFSKTkn1pSTlcwjZpNdwHayVjQWYGtgedakEZ7pmUMdaLz5tVVHfnZZcVmrmscdhDGXp4TnvjVCOaiwq6Td2sakP8=
 cache:
   yarn: true
   directories:
@@ -18,7 +19,6 @@ branches:
 script:
 - yarn lint
 - yarn build
-- yarn run check
 deploy:
 - provider: script
   skip-cleanup: true
@@ -27,7 +27,7 @@ deploy:
     branch: master
 - provider: script
   skip-cleanup: true
-  script: DEPLOY_BRANCH=build yarn deploy && yarn cozyPublish
+  script: DEPLOY_BRANCH=build yarn deploy && yarn cozyPublish --postpublish mattermost
   on:
     tags: true
 before_install:
