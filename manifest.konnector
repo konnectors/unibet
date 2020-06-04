@@ -104,6 +104,10 @@
       }
     }
   },
+  "features": [
+    "METADATA_DEDUP",
+    "HTML_TO_PDF"
+  ],
   "banksTransactionRegExp": "\\bunibet\\b",
   "manifest_version": "2"
 }
