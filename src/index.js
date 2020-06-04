@@ -5,7 +5,6 @@ process.env.SENTRY_DSN =
 const {
   BaseKonnector,
   requestFactory,
-  saveBills,
   addData,
   hydrateAndFilter,
   log,
@@ -37,11 +36,10 @@ async function start(fields) {
   log('info', 'Fetching deposits ...')
   const entries = await parseDeposits()
   log('info', 'Saving deposits')
-  await saveBills(entries, fields.folderPath, {
+  await this.saveBills(entries, fields, {
     identifiers: ['unibet'],
-    contentType: 'application/pdf',
-    sourceAccount: this.accountId,
-    sourceAccountIdentifier: fields.login
+    contentType: true,
+    fileIdAttributes: ['dateValue', 'amount']
   })
   log('info', 'Fetching sport bets ...')
   // Horse bets and poker managed separatly.
@@ -104,6 +102,7 @@ async function parseDeposits() {
     entries.push({
       vendor: 'Unibet',
       date: date.toDate(),
+      dateValue: date.toDate().getTime(),
       amount: items[i].amount,
       currency: 'EUR',
       filename:
